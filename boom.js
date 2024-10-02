@@ -36,88 +36,83 @@ setInterval(() => {
     }
 }, 1000);
 
-function drawFire(canvas) {
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-    const fireParticles = [];
 
-    for (let i = 0; i < 100; i++) {
-        fireParticles.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            vx: Math.random() * 2 - 1,
-            vy: Math.random() * -5,
-            radius: Math.random() * 5 + 2,
-            color: `hsl(${Math.random() * 30 + 30}, 100%, 50%)`
-        });
+class ParticleEffect {
+    constructor(canvas, options) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.width = canvas.width;
+        this.height = canvas.height;
+        this.particles = [];
+        this.options = options;
+
+        this.initParticles();
     }
 
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-        ctx.globalAlpha = 0.7;
+    initParticles() {
+        for (let i = 0; i < 100; i++) {
+            this.particles.push({
+                x: Math.random() * this.width,
+                y: Math.random() * this.height,
+                vx: Math.random() * this.options.vxRange - this.options.vxOffset,
+                vy: Math.random() * this.options.vyRange - this.options.vyOffset,
+                radius: Math.random() * this.options.radiusRange + this.options.radiusOffset,
+                color: `hsl(${Math.random() * this.options.colorRange + (this.options.colorRangeOffset || 0)}, 100%, 50%)`
+            });
+        }
+    }
 
-        fireParticles.forEach((particle) => {
-            ctx.beginPath();
-            ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-            ctx.fillStyle = particle.color;
-            ctx.fill();
+    animate() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.ctx.globalAlpha = 0.7;
+
+        this.particles.forEach((particle) => {
+            this.ctx.beginPath();
+            if (this.options.shape === 'circle') {
+                this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+            } else {
+                this.ctx.rect(particle.x, particle.y, particle.radius, particle.radius);
+            }
+            this.ctx.fillStyle = particle.color;
+            this.ctx.fill();
 
             particle.x += particle.vx;
             particle.y += particle.vy;
 
             if (particle.y < 0) {
-                particle.y = height;
-                particle.x = Math.random() * width;
-            }
-        });
-
-        requestAnimationFrame(animate);
-    }
-
-    animate();
-}
-
-function drawDebris(canvas) {
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-    const debrisParticles = [];
-
-    for (let i = 0; i < 100; i++) {
-        debrisParticles.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            vx: Math.random() * 5 - 2.5,
-            vy: Math.random() * 5 - 2.5,
-            radius: Math.random() * 10 + 5,
-            color: `hsl(${Math.random() * 360}, 100%, 50%)`
-        });
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-        ctx.globalAlpha = 0.7;
-
-        debrisParticles.forEach((particle) => {
-            ctx.beginPath();
-            ctx.rect(particle.x, particle.y, particle.radius, particle.radius);
-            ctx.fillStyle = particle.color;
-            ctx.fill();
-
-            particle.x += particle.vx;
-            particle.y += particle.vy;
-
-            if (particle.x < 0 || particle.x > width) {
+                particle.y = this.height;
+                particle.x = Math.random() * this.width;
+            } else if (particle.x < 0 || particle.x > this.width) {
                 particle.vx *= -1;
-            }
-            if (particle.y < 0 || particle.y > height) {
+            } else if (particle.y < 0 || particle.y > this.height) {
                 particle.vy *= -1;
             }
         });
 
-        requestAnimationFrame(animate);
+        requestAnimationFrame(() => this.animate());
     }
-
-    animate();
 }
+
+// Usage:
+const drawFire = (canvas) => new ParticleEffect(canvas, {
+    vxRange: 2,
+    vxOffset: 1,
+    vyRange: 5,
+    vyOffset: 0,
+    radiusRange: 5,
+    radiusOffset: 2,
+    colorRange: 30,
+    colorRangeOffset: 30,
+    shape: 'circle'
+}).animate();
+
+const drawDebris = (canvas) => new ParticleEffect(canvas, {
+    vxRange: 5,
+    vxOffset: 2.5,
+    vyRange: 5,
+    vyOffset: 2.5,
+    radiusRange: 10,
+    radiusOffset: 5,
+    colorRange: 360,
+    shape: 'rect'
+}).animate();
