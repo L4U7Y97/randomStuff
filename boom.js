@@ -78,15 +78,15 @@ class ParticleEffect {
 
             particle.x += particle.vx;
             particle.y += particle.vy;
-
-            if (particle.y < 0) {
-                particle.y = this.height;
-                particle.x = Math.random() * this.width;
-            } else if (particle.x < 0 || particle.x > this.width) {
-                particle.vx *= -1;
-            } else if (particle.y < 0 || particle.y > this.height) {
-                particle.vy *= -1;
-            }
+            if(this.options.bounce) 
+                if (particle.y < 0) {
+                    particle.y = this.height;
+                    particle.x = Math.random() * this.width;
+                } else if (particle.x < 0 || particle.x > this.width) {
+                    particle.vx *= -1;
+                } else if (particle.y < 0 || particle.y > this.height) {
+                    particle.vy *= -1;
+                }
         });
 
         requestAnimationFrame(() => this.animate());
@@ -103,7 +103,8 @@ const drawFire = (canvas) => new ParticleEffect(canvas, {
     radiusOffset: 2,
     colorRange: 30,
     colorRangeOffset: 30,
-    shape: 'circle'
+    shape: 'circle',
+    bounce: true,
 }).animate();
 
 const drawDebris = (canvas) => new ParticleEffect(canvas, {
